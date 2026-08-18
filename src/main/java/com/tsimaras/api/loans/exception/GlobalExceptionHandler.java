@@ -30,4 +30,10 @@ public class GlobalExceptionHandler {
     public String handleLoanAmountExceededException(LoanAmountExceededException ex) {
         return ex.getLocalizedMessage();
     }
+
+    @ExceptionHandler(LoanNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleLoanNotFoundException(LoanNotFoundException ex) {
+        return ex.getLocalizedMessage();
+    }
 }

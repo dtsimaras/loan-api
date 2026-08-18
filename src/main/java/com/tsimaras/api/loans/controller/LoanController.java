@@ -4,7 +4,11 @@ import com.tsimaras.api.loans.dto.LoanRequest;
 import com.tsimaras.api.loans.dto.LoanResponse;
 import com.tsimaras.api.loans.service.LoanService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/loans")
@@ -21,14 +25,26 @@ public class LoanController {
         return "Loan API is running";
     }
 
-    @GetMapping("/{id}")
-    public String getById(@PathVariable String id) {
-        return "Loan requested: " + id;
-    }
-
     @PostMapping
     public LoanResponse createLoan(@Valid @RequestBody LoanRequest loanRequest) {
 
         return loanService.createLoan(loanRequest);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<LoanResponse>> getLoans() {
+        return ResponseEntity.ok(loanService.getLoans());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<LoanResponse> getLoanById(@PathVariable Long id) {
+        LoanResponse loanR = loanService.getLoanById(id);
+        return ResponseEntity.ok(loanR);
+    }
+
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public LoanResponse updateLoan(@PathVariable Long id, @RequestBody LoanRequest loanRequest) {
+        return loanService.updateLoan(loanRequest, id);
     }
 }
