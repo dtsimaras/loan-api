@@ -7,9 +7,9 @@ import com.tsimaras.api.loans.entity.Loan;
 import com.tsimaras.api.loans.exception.LoanAmountExceededException;
 import com.tsimaras.api.loans.exception.LoanNotFoundException;
 import com.tsimaras.api.loans.repository.LoanRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +28,7 @@ public class LoanService {
             throw new LoanAmountExceededException("Loan amount shouldn't exceed 100.000€");
         }
 
+
         Loan savedLoan = loanRepository.save(toLoan(loanRequest));
 
         return toLoanResponse(savedLoan);
@@ -38,14 +39,21 @@ public class LoanService {
         loan.setApplicantName(lr.applicantName());
         loan.setAmount(lr.amount());
         loan.setTermMonths(lr.termMonths());
-        // TODO: this business logic is messy here
-        loan.setStatus(lr.amount().doubleValue() <= 25_000 ? LoanStatus.APPROVED : LoanStatus.MANUAL_REVIEW);
-
+        loan.setStatus(determineStatus(lr.amount()));
         return loan;
+    }
+
+    private LoanStatus determineStatus(BigDecimal amount) {
+        if (amount.doubleValue() <= 25_000) {
+            return LoanStatus.APPROVED;
+        } else {
+            return LoanStatus.MANUAL_REVIEW;
+        }
     }
 
     public LoanResponse toLoanResponse(Loan loan) {
         return new LoanResponse(
+                loan.getId(),
                 loan.getApplicantName(),
                 loan.getAmount(),
                 loan.getTermMonths(),
@@ -75,6 +83,16 @@ public class LoanService {
         if (loanOptional.isPresent()) {
             loan.setId(id);
             return toLoanResponse(loanRepository.save(loan));
+        } else {
+            throw new LoanNotFoundException("Loan with id " + id + " does not exist");
+        }
+    }
+
+    public void deleteLoan(Long id) {
+        Optional<Loan> loanOptional = loanRepository.findById(id);
+
+        if (loanOptional.isPresent()) {
+            loanRepository.deleteById(id);
         } else {
             throw new LoanNotFoundException("Loan with id " + id + " does not exist");
         }

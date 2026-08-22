@@ -47,4 +47,10 @@ public class LoanController {
     public LoanResponse updateLoan(@PathVariable Long id, @RequestBody LoanRequest loanRequest) {
         return loanService.updateLoan(loanRequest, id);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteLoan(@PathVariable Long id) {
+        loanService.deleteLoan(id);
+    }
 }
