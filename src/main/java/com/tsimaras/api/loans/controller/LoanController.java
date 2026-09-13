@@ -26,8 +26,8 @@ public class LoanController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public LoanResponse createLoan(@Valid @RequestBody LoanRequest loanRequest) {
-
         return loanService.createLoan(loanRequest);
     }
 

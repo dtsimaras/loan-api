@@ -92,4 +92,6 @@ public class LoanServiceTests {
         Loan loanOver = loanService.toLoan(lrOver);
         assertThat(loanOver.getStatus()).isEqualTo((LoanStatus.MANUAL_REVIEW));
     }
+
+    // TODO: implement tests for whole CRUD.
 }
