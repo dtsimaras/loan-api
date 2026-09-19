@@ -10,7 +10,9 @@ import com.tsimaras.api.loans.repository.LoanRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -24,7 +26,7 @@ public class LoanService {
 
     public LoanResponse createLoan(LoanRequest loanRequest) {
 
-        if (loanRequest.amount().doubleValue() > 100_000) {
+        if (loanRequest.amount().compareTo(new BigDecimal(100_000)) > 0) {
             throw new LoanAmountExceededException("Loan amount shouldn't exceed 100.000€");
         }
 
@@ -44,7 +46,7 @@ public class LoanService {
     }
 
     private LoanStatus determineStatus(BigDecimal amount) {
-        if (amount.doubleValue() <= 25_000) {
+        if (amount.compareTo(new BigDecimal(25_000)) <= 0) {
             return LoanStatus.APPROVED;
         } else {
             return LoanStatus.MANUAL_REVIEW;
@@ -97,4 +99,18 @@ public class LoanService {
             throw new LoanNotFoundException("Loan with id " + id + " does not exist");
         }
     }
+
+    public Map<LoanStatus, Integer> getNumberOfLoansPerStatus() {
+        var loans = loanRepository.findAll();
+        Map<LoanStatus, Integer> loansPerStatus = new HashMap<>();
+
+        for (var loan : loans) {
+            LoanStatus status = loan.getStatus();
+            loansPerStatus.put(status,
+                    loansPerStatus.getOrDefault(status, 0) + 1);
+        }
+
+        return loansPerStatus;
+    }
+
 }

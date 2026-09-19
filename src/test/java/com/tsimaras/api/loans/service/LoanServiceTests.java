@@ -13,6 +13,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -47,6 +51,24 @@ public class LoanServiceTests {
     }
 
     @Test
+    public void createLoan_whenAmountEquals100_000_returnsManualReviewLoan() {
+        when(repository.save(any())).thenAnswer(invocation -> {
+            Loan loan = invocation.getArgument(0);
+            loan.setId(1L);
+            return loan;
+        });
+
+        LoanRequest lr = new LoanRequest("user1", new BigDecimal(100_000), 48);
+        LoanResponse loanResult = loanService.createLoan(lr);
+
+        assertThat(loanResult.id()).isEqualTo(1L);
+        assertThat(loanResult.applicantName()).isEqualTo(lr.applicantName());
+        assertThat(loanResult.amount()).isEqualTo(lr.amount());
+        assertThat(loanResult.termMonths()).isEqualTo(lr.termMonths());
+        assertThat(loanResult.status()).isEqualTo(LoanStatus.MANUAL_REVIEW);
+    }
+
+    @Test
     public void createLoan_whenAmountIsOver25_000_returnsManualReviewLoan() {
         when(repository.save(any())).thenAnswer(invocation -> {
             Loan loan = invocation.getArgument(0);
@@ -65,7 +87,7 @@ public class LoanServiceTests {
 
     @Test
     public void createLoan_whenAmountIsOver100_000_throws() {
-        LoanRequest lr = new LoanRequest("user1", new BigDecimal(150_000), 48);
+        LoanRequest lr = new LoanRequest("user1", new BigDecimal(100_001), 48);
         assertThrows(LoanAmountExceededException.class,() -> loanService.createLoan(lr));
         verify(repository, never()).save(any());
     }
@@ -94,4 +116,26 @@ public class LoanServiceTests {
     }
 
     // TODO: implement tests for whole CRUD.
+
+    @Test
+    public void getNumberOfLoansPerStatus() {
+
+
+        Loan approved = new Loan();
+        approved.setStatus(LoanStatus.APPROVED);
+        Loan manualReview = new Loan();
+        manualReview.setStatus(LoanStatus.MANUAL_REVIEW);
+
+        assertThat(loanService.getNumberOfLoansPerStatus()).isEqualTo(
+                Map.of()
+        );
+
+        when(repository.findAll()).thenReturn(List.of(
+                approved, approved, manualReview
+        ));
+
+        assertThat(loanService.getNumberOfLoansPerStatus()).isEqualTo(
+                Map.of(LoanStatus.APPROVED, 2, LoanStatus.MANUAL_REVIEW, 1)
+        );
+    }
 }
